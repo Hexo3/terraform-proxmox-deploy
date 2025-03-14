@@ -1,17 +1,24 @@
 
 provider "proxmox" {
-  endpoint          = var.proxmox_endpoint
-  api_token = var.virtual_environment_api_token
+  endpoint = var.proxmox_endpoint
+  # api_token = var.virtual_environment_api_token
+  username = "root@pam"
+  password = var.proxmox_password
   insecure = true
 }
-resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
+
+resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
+  content_type = "iso"
+  datastore_id = "local"
+  node_name    = var.proxmox_host
+
+  url = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+}
+
+resource "proxmox_virtual_environment_vm" "ubuntu" {
   count = 1
   name      = "test-0${count.index + 1}"
   node_name = var.proxmox_host
-
-  # clone {
-  #   vm_id = var.template_id
-  # }
 
   initialization {
     dns {
@@ -44,10 +51,3 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   }
 }
 
-resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
-  content_type = "iso"
-  datastore_id = "local"
-  node_name    = var.proxmox_host
-
-  url = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
-}
